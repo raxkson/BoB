@@ -11,7 +11,7 @@ void usage() {
 int main(int argc, char *argv[])
 {
 
-    string file = argv[0];
+    string file = argv[1];
     if(argc != 2){
         usage();
         return -1;
