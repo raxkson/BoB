@@ -11,12 +11,12 @@ void usage() {
 int main(int argc, char *argv[])
 {
 
-    string file = argv[1];
     if(argc != 2){
         usage();
         return -1;
     }
 
+    string file = argv[1];
 
     char errbuff[PCAP_ERRBUF_SIZE];
     pcap_t * pcap = pcap_open_offline(file.c_str(), errbuff);
