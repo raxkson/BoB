@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <map>
 #include <libnetfilter_queue/libnetfilter_queue.h>
+#include <string.h>
+#include <arpa/inet.h>
 
 #include "TCPDataChange.h"
 #include "typekey.h"
@@ -53,11 +55,9 @@ static int cb(struct nfq_q_handle *qhandle, struct nfgenmsg *nfmsg,
 
 
         // tcp && ipv4
-        if((ip->ip_p == 6) && (ntohs(tcp->th_sport) == 80))
+        if((ip->ip_p == 0x6) && (ntohs(tcp->th_sport) == 80))
         {
 
-
-            ///////////////////////////////////////////
 
             map<TcpFlowkey ,uint32_t> kv;
 
@@ -67,39 +67,40 @@ static int cb(struct nfq_q_handle *qhandle, struct nfgenmsg *nfmsg,
             tcpkey.dstIp = ip->ip_dst;
             tcpkey.dstPort = tcp->th_dport;
 
-
-            //dkv.insert(make_pair(dst_pair, tcp->th_ack));
-            // src, dst = save fix bytes
-            //dst,src = ack + fixed / src, dst = seq - fixed
-            kv.insert(make_pair(tcpkey,tcp->th_seq));
-/*
-            skv.insert(make_pair(src_dst_IpPort, tcp->th_seq));
-            if(skv.find(src_dst_IpPort) == skv.end()){
-                skv.insert(make_pair(src_pair, tcp->th_seq));
-            }else{
-                skv[src_pair] += tcp->th_seq;
-            }
-
-            if(dkv.find(dst_pair) == dkv.end()){
-                dkv.insert(make_pair(dst_pair, tcp->th_ack));
-            }else{
-                dkv[dst_pair] += tcp->th_ack;
-            }
-
-
-*/
-
-            //////////////////////////////////////////
             packet += sizeof(struct tcp_hdr);
 
             uint16_t size_ip_tcp = (ip->ip_hl * 4) + (tcp->th_off * 4);
 
             // replace string
             string tmp_data = (char *)packet;
+            string before = (char *)packet;
             tmp_data = replaceString(tmp_data, fromString, toString);
+            string after = tmp_data;
+            u_int16_t changedLen = after.size() - before.size();
+
+
+            char *tmp = new char[tmp_data.length() + 1];
+            struct ipv4_hdr *tmp_ip;
+            struct tcp_hdr *tmp_tcp;
+
+            strcpy(tmp, tmp_data.data());
+            tmp_ip = (struct ipv4_hdr*)tmp;
+            tmp_tcp = (struct tcp_hdr*)(tmp + sizeof(struct ipv4_hdr));
+
+            if(changedLen){// if len changed
+                kv.insert(make_pair(tcpkey,changedLen));
+            }
+
+            //if same key
+            if(kv.find(tcpkey.reverse()) != kv.end()){
+                tmp_tcp->th_ack -= kv[tcpkey];
+            }
+            if(kv.find(tcpkey) != kv.end()){
+                   tmp_tcp->th_seq += kv[tcpkey];
+            }
 
             // change data
-            memcpy((changed_data + size_ip_tcp), tmp_data.c_str(), (len - size_ip_tcp));
+            memcpy((changed_data + size_ip_tcp), tmp, (len - size_ip_tcp));
 
             // calc checksum
             checksum(changed_data, len);
@@ -121,6 +122,7 @@ int main(int argc, char **argv)
         usage();
         return -1;
     }
+
     fromString = argv[1];
     toString = argv[2];
 

@@ -9,7 +9,8 @@ public:
     uint16_t dstPort;
 
     bool operator < (const TcpFlowkey& rhs) const;
-    bool operator = (const TcpFlowkey& rhs) const;
+    bool operator == (const TcpFlowkey& rhs) const;
+    TcpFlowkey reverse();
 
 };
 

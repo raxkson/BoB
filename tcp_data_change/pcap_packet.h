@@ -1,6 +1,5 @@
 #ifndef PCAP_PACKET_H
 #define PCAP_PACKET_H
-#include <sys/types.h>
 #include <arpa/inet.h>
 /* ethernet headers are always exactly 14 bytes */
 struct checksum_header{

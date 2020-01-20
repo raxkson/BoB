@@ -11,7 +11,7 @@ bool TcpFlowkey::operator<(const TcpFlowkey &rhs) const
     if (this->dstPort < rhs.dstPort) return true;
     return false;
 }
-bool TcpFlowkey::operator=(const TcpFlowkey &rhs) const
+bool TcpFlowkey::operator==(const TcpFlowkey &rhs) const
 {
     if (this->srcIp   != rhs.srcIp)   return false;
     if (this->srcIp   != rhs.srcIp)   return false;
@@ -21,4 +21,11 @@ bool TcpFlowkey::operator=(const TcpFlowkey &rhs) const
     if (this->dstIp   != rhs.dstIp)   return false;
     if (this->dstPort != rhs.dstPort) return false;
     return true;
+}
+TcpFlowkey TcpFlowkey::reverse()
+{
+    TcpFlowkey rev;
+    rev.srcIp = this->dstIp;
+    rev.dstIp = this->srcIp;
+    return rev;
 }
