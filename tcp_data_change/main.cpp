@@ -116,16 +116,13 @@ void usage() {
 }
 int main(int argc, char **argv)
 {
-    /*
+
     if(argc != 3){
         usage();
         return -1;
     }
     fromString = argv[1];
     toString = argv[2];
-    */
-    fromString = "hacking";
-    toString = "hooking1232352352";
 
     struct nfq_handle *h;
     struct nfq_q_handle *qh;
